@@ -1,0 +1,30 @@
+# Environment and secret configuration (do not share)
+.env
+.env.*
+/config/secrets/prod/prod.decrypt.private.php
+
+# Symfony build/cache/vendor directories
+/public/bundles/
+/var/
+/vendor/
+
+# PHPUnit cache and config
+/phpunit.xml
+.phpunit.xml.dist
+.phpunit.result.cache
+
+# DDEV local development config (machine-specific)
+.ddev/
+
+# Node.js (if used in root)
+node_modules/
+package-lock.json
+
+# IDE/editor/system files (user-specific)
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local VSCode workspace file (do not share)
+url-shorter.code-workspace

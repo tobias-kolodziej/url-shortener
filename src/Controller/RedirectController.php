@@ -31,7 +31,7 @@ class RedirectController extends AbstractController
             );
         }
 
-        return $this->redirect($originalUrl);
+        return $this->redirect($originalUrl, 301);
     }
 
     #[Route(

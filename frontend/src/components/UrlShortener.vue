@@ -1,26 +1,48 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import useVuelidate from '@vuelidate/core'
+import { required, url as urlValidator } from '@vuelidate/validators'
 
 const url = ref('')
 const shortUrl = ref('')
 const copied = ref(false)
 
-async function shorten() {
-  if (!url.value) return
+const rules = computed(() => ({
+  url: { required, url: urlValidator }
+}))
 
-  // try {
-  //   const response = await fetch('/shorten', {
-  //     method: 'POST',
-  //     headers: { 'Content-Type': 'application/json' },
-  //     body: JSON.stringify({ url: url.value })
-  //   })
-  //   const data = await response.json()
-  //   shortUrl.value = data.shortUrl
-  // } catch (err) {
-  //   console.error('Fehler beim Kürzen:', err)
-  // }
-  shortUrl.value = "https://short.url"
-  copied.value = false
+const v$ = useVuelidate(rules, { url })
+
+async function prependHttpsAndTouch() {
+  if (!/^https?:\/\//i.test(url.value)) {
+    url.value = 'https://' + url.value
+  }
+
+  v$.value.url.$touch()
+}
+
+async function shorten() {
+  const result = await v$.value.$validate()
+  if (!result) {
+    console.log("invalid", url.value)
+    console.log("valid?", v$.value.url.$errors)
+    return
+  }
+
+  try {
+    console.log("fetch")
+
+    const response = await fetch('/api/urls', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: url.value })
+    })
+    const data = await response.json()
+    shortUrl.value = data.shortUrl
+    copied.value = false
+  } catch (err) {
+    console.error('Fehler beim Kürzen:', err)
+  }
 }
 
 function copyToClipboard() {
@@ -39,8 +61,24 @@ function copyToClipboard() {
       v-model="url"
       type="url"
       placeholder="https://example.com"
-      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
+      @blur="prependHttpsAndTouch"
+      class="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring transition"
+      :class="{
+        'border border-red-500 ring-red-300': v$.url.$error,
+        'border border-gray-300 ring-blue-300': !v$.url.$error
+      }"
     />
+    <p
+      v-if="v$.url.$error"
+      class="text-sm text-red-600"
+    >
+      <span v-if="v$.url.$errors.find(e => e.$validator === 'required')">
+        Bitte gib eine URL ein.
+      </span>
+      <span v-else>
+        Bitte gib eine gültige URL ein.
+      </span>
+    </p>
 
     <button
       @click="shorten"
@@ -49,7 +87,10 @@ function copyToClipboard() {
       Kürzen
     </button>
 
-    <div v-if="shortUrl" class="text-center space-y-2">
+    <div
+      v-if="shortUrl"
+      class="text-center space-y-2"
+    >
       <p class="text-gray-600">Deine Kurz-URL:</p>
       <a
         :href="shortUrl"

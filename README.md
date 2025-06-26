@@ -20,7 +20,7 @@ The backend provides a clean API, while the frontend is a Single Page Applicatio
 
 - **Backend:** Symfony 6.1, Doctrine ORM, PHP 8.3
 - **Frontend:** Vue 3 + Vite + Tailwind CSS 4
-- **Database:** SQLite (default), MySQL/MariaDB optional
+- **Database:** Doctrine ORM with MariaDB 10.11 (SQLite/MySQL possible)
 - **Tooling:** Docker, DDEV
 
 ---
